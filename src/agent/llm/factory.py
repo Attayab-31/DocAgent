@@ -8,6 +8,7 @@ from .openai_llm import OpenAILLM
 from .claude_llm import ClaudeLLM
 from .huggingface_llm import HuggingFaceLLM
 from .gemini_llm import GeminiLLM
+from .openrouter_llm import OpenRouterLLM  # Add OpenRouter import
 
 class LLMFactory:
     """Factory class for creating LLM instances."""
@@ -32,7 +33,6 @@ class LLMFactory:
             raise ValueError("Model must be specified in the config file")
         
         # Extract rate limit settings from config
-        # First check if there are specific rate limits in the LLM config
         rate_limits = config.get("rate_limits", {})
         
         # If not, check if there are global rate limits for this provider type
@@ -42,7 +42,8 @@ class LLMFactory:
             provider_map = {
                 "openai": "openai",
                 "claude": "claude",
-                "gemini": "gemini"
+                "gemini": "gemini",
+                "openrouter": "openrouter"  # Add OpenRouter to provider map
             }
             provider_key = provider_map.get(llm_type, llm_type)
             provider_limits = global_config.get("rate_limits", {}).get(provider_key, {})
@@ -63,6 +64,12 @@ class LLMFactory:
             )
         elif llm_type == "gemini":
             return GeminiLLM(
+                api_key=config["api_key"],
+                model=model,
+                rate_limits=rate_limits
+            )
+        elif llm_type == "openrouter":  # Add OpenRouter support
+            return OpenRouterLLM(
                 api_key=config["api_key"],
                 model=model,
                 rate_limits=rate_limits
@@ -98,4 +105,4 @@ class LLMFactory:
         with open(config_path, 'r') as f:
             config = yaml.safe_load(f)
         
-        return config 
+        return config
